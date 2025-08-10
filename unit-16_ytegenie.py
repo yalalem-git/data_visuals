@@ -1,41 +1,40 @@
 import requests
-import json
 from operator import itemgetter
 
 url = "https://hacker-news.firebaseio.com/v0/topstories.json"
 response = requests.get(url)
 print(f"Status Code: {response.status_code}")
 
-
 submission_ids = response.json()
 submission_dicts = []
 
-
 for submission_id in submission_ids[:45]:
-      custom_url = f"https://hacker-news.firebaseio.com/v0/item/{submission_id}.json"
-      custom_response = requests.get(custom_url)
+    item_url = f"https://hacker-news.firebaseio.com/v0/item/{submission_id}.json"
+    item_response = requests.get(item_url)
+    #print(f"id: {submission_id}    Status: {item_response.status_code}")
 
+    item_data = item_response.json()
 
-      print(f"id: {submission_id}\tStatus: {custom_response.status_code}")
-      response_dict = custom_response.json()
-      
-      try:
-          submission_dict = {
-                "title" : response_dict['title'],
-                'url' : response_dict['url'],
-                'hn_link' : f"https://news.ycombinator.com/item?id={submission_id}",
-                "comments" : response_dict["descendants"]
-            }
-      except KeyError as e:
-          print("Key Error")
-      else:
-          submission_dicts.append(submission_dict)
+    if not item_data:
+        continue  # skip if None
 
-submission_dicts = sorted(submission_dicts, key = itemgetter('comments', reverse = True))
+    try:
+        comments = item_data['descendants']
+    except KeyError:
+        comments = 0  # default if key is missing
 
+    submission_dict = {
+        "title": item_data.get("title", "No title"),
+        "hn_link": f"https://news.ycombinator.com/item?id={submission_id}",
+        "url": item_data.get("url", ""),
+        "comments": comments
+    }
 
+    submission_dicts.append(submission_dict)
 
-for submission_dict in submission_dicts:
-    print(f"\nTitle : {submission_dict["title"]}")
-    print(f"\nDiscussion Link : {submission_dict["hn_link"]}")
-    print(f"Article Link : {submission_dict['url']}")
+submission_dicts = sorted(submission_dicts, key=itemgetter('comments'), reverse=True)
+
+for i, submission in enumerate(submission_dicts, start=1):
+    print(f"{i}. Title: {submission['title']}")
+    print(f"   Discussion Link: {submission['hn_link']}")
+    print(f"   Article Link: {submission['url']}\n")
