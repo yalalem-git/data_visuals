@@ -1,3 +1,11 @@
+"""
+Returning Most Popular Articles from Hacker News website
+by: Yalalem Tegenie
+The code is devloped to retrive the top 45 articles by popularity from 'Hacker News' website by editing the lecture video
+10 August 2025
+
+"""
+
 import requests
 from operator import itemgetter
 
